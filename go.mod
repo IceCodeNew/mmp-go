@@ -10,4 +10,4 @@ require (
 
 require golang.org/x/sys v0.21.0 // indirect
 
-require github.com/database64128/tfo-go v1.0.2
+require github.com/database64128/tfo-go v1.1.2
