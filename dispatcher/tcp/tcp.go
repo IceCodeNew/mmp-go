@@ -14,7 +14,7 @@ import (
 	"github.com/Qv2ray/mmp-go/config"
 	"github.com/Qv2ray/mmp-go/dispatcher"
 	"github.com/Qv2ray/mmp-go/infra/pool"
-	"github.com/database64128/tfo-go"
+	"github.com/database64128/tfo-go/v2"
 )
 
 // [salt][encrypted payload length][length tag][encrypted payload][payload tag]
@@ -148,14 +148,9 @@ func (d *TCP) handleConn(conn net.Conn) error {
 		DisableTFO: !server.TCPFastOpen,
 	}
 	dialer.Timeout = time.Duration(d.group.DialTimeoutSec) * time.Second
-	rc, err := dialer.Dial("tcp", server.Target)
+	rc, err := dialer.Dial("tcp", server.Target, data[:n])
 	if err != nil {
-		return fmt.Errorf("[tcp] %s <-> %s <-x-> %s handleConn dial error: %w", conn.RemoteAddr(), conn.LocalAddr(), server.Target, err)
-	}
-
-	_, err = rc.Write(data[:n])
-	if err != nil {
-		return fmt.Errorf("[tcp] %s <-> %s <-x-> %s handleConn write error: %w", conn.RemoteAddr(), conn.LocalAddr(), server.Target, err)
+		return fmt.Errorf("[tcp] %s <-> %s <-x-> %s handleConn dial/write error: %w", conn.RemoteAddr(), conn.LocalAddr(), server.Target, err)
 	}
 
 	log.Printf("[tcp] %s <-> %s <-> %s", conn.RemoteAddr(), conn.LocalAddr(), server.Target)

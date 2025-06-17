@@ -8,6 +8,6 @@ require (
 	golang.org/x/net v0.26.0
 )
 
-require golang.org/x/sys v0.21.0 // indirect
+require golang.org/x/sys v0.25.0 // indirect
 
-require github.com/database64128/tfo-go v1.1.2
+require github.com/database64128/tfo-go/v2 v2.0.2
