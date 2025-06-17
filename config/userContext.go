@@ -1,11 +1,12 @@
 package config
 
 import (
-	"github.com/Qv2ray/mmp-go/infra/lru"
-	"github.com/Qv2ray/mmp-go/infra/lrulist"
 	"math/rand"
 	"net"
 	"time"
+
+	"github.com/Qv2ray/mmp-go/infra/lru"
+	"github.com/Qv2ray/mmp-go/infra/lrulist"
 )
 
 // encapsulating semantic types
@@ -57,7 +58,7 @@ func (pool *UserContextPool) GetOrInsert(addr net.Addr, servers []Server) *UserC
 		return NewUserContext(servers)
 	})
 	for _, ev := range removed {
-		ev.Value.(*UserContext).Close()
+		_ = ev.Value.(*UserContext).Close()
 	}
 	return value.(*UserContext)
 }

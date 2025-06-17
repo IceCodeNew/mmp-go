@@ -17,7 +17,7 @@ import (
 	"github.com/database64128/tfo-go"
 )
 
-//[salt][encrypted payload length][length tag][encrypted payload][payload tag]
+// [salt][encrypted payload length][length tag][encrypted payload][payload tag]
 const (
 	BasicLen = 32 + 2 + 16
 	MaxLen   = BasicLen + 16383 + 16
@@ -57,7 +57,9 @@ func (d *TCP) Listen() (err error) {
 	if err != nil {
 		return
 	}
-	defer d.l.Close()
+	defer func() {
+		_ = d.l.Close()
+	}()
 	log.Printf("[tcp] listen on :%v\n", d.group.Port)
 	for {
 		conn, err := d.l.Accept()
@@ -92,10 +94,16 @@ func (d *TCP) handleConn(conn net.Conn) error {
 	/*
 	   https://github.com/shadowsocks/shadowsocks-org/blob/master/whitepaper/whitepaper.md
 	*/
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	if d.group.AuthTimeoutSec > 0 {
-		conn.SetReadDeadline(time.Now().Add(time.Duration(d.group.AuthTimeoutSec) * time.Second))
+		if err := conn.SetReadDeadline(
+			time.Now().Add(time.Duration(d.group.AuthTimeoutSec) * time.Second),
+		); err != nil {
+			panic(err)
+		}
 	}
 
 	data := pool.Get(MaxLen)
@@ -117,8 +125,8 @@ func (d *TCP) handleConn(conn net.Conn) error {
 	if server == nil {
 		if d.group.DrainOnAuthFail {
 			log.Printf("[tcp] auth failed, draining conn %s <-> %s", conn.RemoteAddr(), conn.LocalAddr())
-			io.Copy(io.Discard, conn)
-			return nil
+			_, err := io.Copy(io.Discard, conn)
+			return err
 		}
 
 		if len(d.group.Servers) == 0 {
@@ -130,7 +138,9 @@ func (d *TCP) handleConn(conn net.Conn) error {
 	}
 
 	if d.group.AuthTimeoutSec > 0 {
-		conn.SetReadDeadline(time.Time{})
+		if err := conn.SetReadDeadline(time.Time{}); err != nil {
+			panic(err)
+		}
 	}
 
 	// dial and relay
@@ -160,15 +170,17 @@ func (d *TCP) handleConn(conn net.Conn) error {
 }
 
 func relay(lc, rc DuplexConn) error {
-	defer rc.Close()
+	defer func() {
+		_ = rc.Close()
+	}()
 	ch := make(chan error, 1)
 	go func() {
 		_, err := io.Copy(lc, rc)
-		lc.CloseWrite()
+		_ = lc.CloseWrite()
 		ch <- err
 	}()
 	_, err := io.Copy(rc, lc)
-	rc.CloseWrite()
+	_ = rc.CloseWrite()
 	innerErr := <-ch
 	if err != nil {
 		return err

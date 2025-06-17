@@ -87,7 +87,9 @@ func (outline Outline) getConfigFromLink(c *http.Client) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getConfigFromLink failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	return io.ReadAll(resp.Body)
 }
 
@@ -119,7 +121,9 @@ func (outline Outline) getConfigFromApi(c *http.Client) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getConfigFromApi failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	return io.ReadAll(resp.Body)
 }
 
@@ -157,7 +161,9 @@ func (outline Outline) getConfigFromSSH(*http.Client) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial: %w", err)
 	}
-	defer client.Close()
+	defer func() {
+		_ = client.Close()
+	}()
 
 	const cmd = "cat /opt/outline/persisted-state/shadowbox_config.json"
 	gid, err := getGroupID(client)
@@ -169,7 +175,9 @@ func (outline Outline) getConfigFromSSH(*http.Client) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to create session: %w", err)
 		}
-		defer session.Close()
+		defer func() {
+			_ = session.Close()
+		}()
 		out, err := session.CombinedOutput(cmd)
 		if err != nil {
 			err = fmt.Errorf("%v: %w", string(bytes.TrimSpace(out)), err)
@@ -190,7 +198,9 @@ func getGroupID(client *ssh.Client) (gid string, err error) {
 	if err != nil {
 		return "", err
 	}
-	defer session.Close()
+	defer func() {
+		_ = session.Close()
+	}()
 	b, err := session.Output("id -g")
 	return strings.TrimSpace(string(b)), err
 }
@@ -201,7 +211,9 @@ func sudoCombinedOutput(client *ssh.Client, password string, cmd string) (b []by
 	if err != nil {
 		return nil, err
 	}
-	defer session.Close()
+	defer func() {
+		_ = session.Close()
+	}()
 	b, err = session.CombinedOutput("sh -c " + strconv.Quote(fmt.Sprintf("echo %v|sudo -p %v -S %v", strconv.Quote(password), strconv.Quote(prompt), cmd)))
 	b = bytes.TrimPrefix(bytes.TrimSpace(b), []byte(prompt))
 	if bytes.Contains(b, []byte(prompt)) {

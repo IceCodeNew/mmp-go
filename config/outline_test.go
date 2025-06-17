@@ -1,9 +1,10 @@
 package config
 
 import (
-	"golang.org/x/crypto/ssh"
 	"net"
 	"testing"
+
+	"golang.org/x/crypto/ssh"
 )
 
 func TestSudoOutput(t *testing.T) {
@@ -19,7 +20,9 @@ func TestSudoOutput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer client.Close()
+	defer func() {
+		_ = client.Close()
+	}()
 	b, err := sudoCombinedOutput(client, password, "echo ok")
 	if err != nil {
 		t.Fatal(string(b), err)

@@ -62,15 +62,15 @@ func fastJump(from *next, to *next, str *string) {
 
 func _makeJump(cur *next, from *next, builder *strings.Builder) {
 	var fork bool
-	if cur.node.end || len(cur.node.c) > 1 {
+	if cur.end || len(cur.c) > 1 {
 		if builder.Len() > 1 {
 			s := builder.String()
 			fastJump(from, cur, &s)
 		}
 		fork = true
 	}
-	for k := range cur.node.c {
-		child := cur.node.c[k]
+	for k := range cur.c {
+		child := cur.c[k]
 		if fork {
 			from = child
 			builder = new(strings.Builder)
@@ -112,7 +112,7 @@ func (t *Trie) Match(str string) (prefix string) {
 				}
 			}
 		}
-		if tmp.node.end {
+		if tmp.end {
 			if builder.Len() <= length {
 				prefix = builder.String()
 				if len(prefix) == length {

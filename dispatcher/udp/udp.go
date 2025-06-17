@@ -3,16 +3,17 @@ package udp
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net"
+	"sync"
+	"time"
+
 	"github.com/Qv2ray/mmp-go/cipher"
 	"github.com/Qv2ray/mmp-go/config"
 	"github.com/Qv2ray/mmp-go/dispatcher"
 	"github.com/Qv2ray/mmp-go/dispatcher/infra"
 	"github.com/Qv2ray/mmp-go/infra/pool"
 	"golang.org/x/net/dns/dnsmessage"
-	"log"
-	"net"
-	"sync"
-	"time"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 	DnsQueryTimeout   = 17 * time.Second // RFC 5452
 )
 
-var AuthFailedErr = fmt.Errorf("auth failed")
+var ErrAuthFailed = fmt.Errorf("auth failed")
 
 func init() {
 	dispatcher.Register("udp", New)
@@ -44,7 +45,9 @@ func (d *UDP) Listen() (err error) {
 	if err != nil {
 		return
 	}
-	defer d.c.Close()
+	defer func() {
+		_ = d.c.Close()
+	}()
 	log.Printf("[udp] listen on :%v\n", d.group.Port)
 	var buf [MTU]byte
 	for {
@@ -78,7 +81,7 @@ func (d *UDP) handleConn(laddr net.Addr, data []byte, n int) (err error) {
 	// get conn or dial and relay
 	rc, err := d.GetOrBuildUCPConn(laddr, data[:n])
 	if err != nil {
-		if err == AuthFailedErr {
+		if err == ErrAuthFailed {
 			return nil
 		}
 		return fmt.Errorf("[udp] handleConn dial target error: %w", err)
@@ -137,7 +140,7 @@ func (d *UDP) GetOrBuildUCPConn(laddr net.Addr, data []byte) (rc *net.UDPConn, e
 				}
 			}
 			d.nm.Unlock()
-			return nil, AuthFailedErr
+			return nil, ErrAuthFailed
 		}
 
 		// dial
@@ -175,7 +178,7 @@ func (d *UDP) GetOrBuildUCPConn(laddr net.Addr, data []byte) (rc *net.UDPConn, e
 		}
 	}
 	// countdown
-	_ = conn.UDPConn.SetReadDeadline(time.Now().Add(conn.timeout))
+	_ = conn.SetReadDeadline(time.Now().Add(conn.timeout))
 	return rc, nil
 }
 

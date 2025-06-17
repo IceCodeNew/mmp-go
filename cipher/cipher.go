@@ -5,11 +5,12 @@ import (
 	"crypto/cipher"
 	"crypto/md5"
 	"crypto/sha1"
+	"io"
+
 	"github.com/Qv2ray/mmp-go/infra/pool"
 	"github.com/qv2ray/smaead"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/hkdf"
-	"io"
 )
 
 type CipherConf struct {
@@ -52,7 +53,9 @@ func (conf *CipherConf) Verify(buf []byte, masterKey []byte, salt []byte, cipher
 			salt,
 			ReusedInfo,
 		)
-		io.ReadFull(kdf, sk)
+		if _, err := io.ReadFull(kdf, sk); err != nil {
+			panic(err)
+		}
 		if subKey != nil && cap(*subKey) >= conf.KeyLen {
 			*subKey = (*subKey)[:conf.KeyLen]
 			copy(*subKey, sk)
@@ -84,7 +87,9 @@ func (conf *CipherConf) UnsafeVerifyATyp(buf []byte, masterKey []byte, salt []by
 			salt,
 			ReusedInfo,
 		)
-		io.ReadFull(kdf, sk)
+		if _, err := io.ReadFull(kdf, sk); err != nil {
+			panic(err)
+		}
 		if subKey != nil && cap(*subKey) >= conf.KeyLen {
 			*subKey = (*subKey)[:conf.KeyLen]
 			copy(*subKey, sk)

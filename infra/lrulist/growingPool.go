@@ -37,5 +37,4 @@ func (p *growingPool) Put(l []*Node) {
 		return
 	}
 	p.pool.Put(l[:p.size])
-	return
 }

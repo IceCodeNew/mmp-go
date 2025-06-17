@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/binary"
-	"github.com/Qv2ray/mmp-go/cipher"
-	"github.com/Qv2ray/mmp-go/config"
-	"golang.org/x/crypto/hkdf"
 	"math/rand"
 	"net"
 	"testing"
+
+	"github.com/Qv2ray/mmp-go/cipher"
+	"github.com/Qv2ray/mmp-go/config"
+	"golang.org/x/crypto/hkdf"
 )
 
 func BenchmarkDispatcher_Auth(b *testing.B) {
@@ -102,7 +103,9 @@ func TestDispatcher_Auth(t *testing.T) {
 			conf := cipher.CiphersConf[method]
 			kdf := hkdf.New(sha1.New, g.Servers[0].MasterKey, salt[:], cipher.ReusedInfo)
 			sk := make([]byte, conf.KeyLen)
-			kdf.Read(sk)
+			if _, err := kdf.Read(sk); err != nil {
+				panic(err)
+			}
 			aead, _ := conf.NewCipher(sk)
 			dataLen := len(addr) + len(payload) + aead.Overhead()
 			data := make([]byte, dataLen)

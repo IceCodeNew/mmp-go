@@ -4,7 +4,6 @@ import "errors"
 
 var ErrNetClosing = errors.New("use of closed network connection")
 
-
 func AddrLen(packet []byte) int {
 	if len(packet) < 5 {
 		return 0 // invalid addr field

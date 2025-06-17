@@ -9,8 +9,8 @@ import (
 
 const (
 	// number of pools.
-	num        = 17
-	maxsize    = 1 << (num - 1)
+	num     = 17
+	maxsize = 1 << (num - 1)
 )
 
 var (
