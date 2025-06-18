@@ -1,4 +1,5 @@
 {
+  "ignoreDeps": ["go", "github.com/database64128/tfo-go/v2"],
   "timezone": "Asia/Shanghai",
   "extends": [
     "forkProcessing:enabled",
