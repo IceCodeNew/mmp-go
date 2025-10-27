@@ -10,5 +10,6 @@
     ":configMigration",
     ":pinDevDependencies",
     "security:openssf-scorecard",
+    "group:allNonMajor",
   ],
 }
