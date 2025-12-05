@@ -1,3 +1,29 @@
 {
-  "forkProcessing": "enabled"
+  "forkProcessing": "enabled",
+
+  "extends": [
+    "config:best-practices",
+    "group:allNonMajor",
+    "group:githubArtifactActions",
+    "group:linters",
+    "schedule:earlyMondays",
+    "security:openssf-scorecard"
+  ],
+  "ignoreDeps": ["go", "github.com/database64128/tfo-go/v2"],
+  "ignorePresets": ["docker:pinDigests"],
+  "packageRules": [
+    {
+      // MUST have a matching criteria
+      "matchPackageNames": ["*"],
+
+      // followed by the actions. Both the matching and actions are mandatory.
+      "minimumReleaseAge": "3 days",
+      "internalChecksFilter": "strict"
+    }
+  ],
+  "postUpdateOptions": [
+    // "gomodUpdateImportPaths",  // implicate "gomodTidy"
+    "gomodMassage"
+  ],
+  "timezone": "Asia/Shanghai"
 }
